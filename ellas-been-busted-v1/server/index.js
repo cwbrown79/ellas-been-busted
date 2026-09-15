@@ -51,6 +51,21 @@ app.use('/uploads', express.static(uploadsDir));
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, app: "Ella's Been Busted" });
 });
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    return res.status(500).json({ error: 'Admin password is not configured' });
+  }
+
+  if (password !== adminPassword) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+
+  res.json({ ok: true });
+});
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
