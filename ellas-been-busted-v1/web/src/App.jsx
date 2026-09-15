@@ -27,6 +27,12 @@ function PhotoPlaceholder({ index, title, tag }) {
 
 export default function App() {
     const [showSubmitForm, setShowSubmitForm] = useState(false);
+ const [submitForm, setSubmitForm] = useState({
+  photo: null,
+  caption: '',
+  category: 'Everyday',
+  submittedBy: ''
+});
   
   return (
     <div className="site-shell">
@@ -115,13 +121,72 @@ export default function App() {
       <h2>Submit a Photo</h2>
       <p>Share your favorite Ella moment.</p>
 
-      <button
-        className="button"
-        type="button"
-        onClick={() => setShowSubmitForm(false)}
-      >
-        Cancel
-      </button>
+      <label>
+        Photo
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) =>
+            setSubmitForm({ ...submitForm, photo: e.target.files[0] })
+          }
+        />
+      </label>
+
+      <label>
+        Caption
+        <input
+          type="text"
+          value={submitForm.caption}
+          onChange={(e) =>
+            setSubmitForm({ ...submitForm, caption: e.target.value })
+          }
+          placeholder="What was Ella caught doing?"
+        />
+      </label>
+
+      <label>
+        Category
+        <select
+          value={submitForm.category}
+          onChange={(e) =>
+            setSubmitForm({ ...submitForm, category: e.target.value })
+          }
+        >
+          <option>Everyday</option>
+          <option>Friends</option>
+          <option>Family</option>
+          <option>College</option>
+          <option>Beach</option>
+          <option>Travel</option>
+          <option>Throwback</option>
+        </select>
+      </label>
+
+      <label>
+        Submitted By
+        <input
+          type="text"
+          value={submitForm.submittedBy}
+          onChange={(e) =>
+            setSubmitForm({ ...submitForm, submittedBy: e.target.value })
+          }
+          placeholder="Your name"
+        />
+      </label>
+
+      <div className="submit-form-actions">
+        <button className="button light" type="button">
+          Submit Photo →
+        </button>
+
+        <button
+          className="button"
+          type="button"
+          onClick={() => setShowSubmitForm(false)}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   </section>
 )}
