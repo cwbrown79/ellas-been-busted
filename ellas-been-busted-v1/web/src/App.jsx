@@ -33,6 +33,43 @@ export default function App() {
   category: 'Everyday',
   submittedBy: ''
 });
+  const handleSubmitPhoto = async () => {
+  if (!submitForm.photo) {
+    alert('Please choose a photo.');
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('photo', submitForm.photo);
+    formData.append('caption', submitForm.caption);
+    formData.append('category', submitForm.category);
+    formData.append('submittedBy', submitForm.submittedBy);
+
+    const response = await fetch('/api/photos', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+
+    alert('Photo submitted! It will appear after approval.');
+
+    setSubmitForm({
+      photo: null,
+      caption: '',
+      category: 'Everyday',
+      submittedBy: ''
+    });
+
+    setShowSubmitForm(false);
+  } catch (error) {
+    console.error(error);
+    alert('There was a problem submitting the photo. Please try again.');
+  }
+};
   
   return (
     <div className="site-shell">
@@ -175,9 +212,13 @@ export default function App() {
       </label>
 
       <div className="submit-form-actions">
-        <button className="button light" type="button">
-          Submit Photo →
-        </button>
+       <button
+  className="button light"
+  type="button"
+  onClick={handleSubmitPhoto}
+>
+  Submit Photo →
+</button>
 
         <button
           className="button"
