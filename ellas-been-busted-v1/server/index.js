@@ -4,12 +4,27 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
 import fs from 'fs';
+import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
 const dbPath = process.env.DB_PATH || path.join(dataDir, 'ellas-been-busted.db');
+const uploadsDir = path.join(dataDir, 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ storage });
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
@@ -31,9 +46,43 @@ db.exec(`
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, app: "Ella's Been Busted" });
+});
+app.post('/api/photos', upload.single('photo'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Photo is required' });
+    }
+
+    const caption = req.body.caption || '';
+    const category = req.body.category || 'Everyday';
+    const submittedBy = req.body.submittedBy || '';
+
+    const result = db.prepare(`
+      INSERT INTO photos
+        (filename, original_name, caption, category, submitted_by, status)
+      VALUES
+        (?, ?, ?, ?, ?, 'pending')
+    `).run(
+      req.file.filename,
+      req.file.originalname,
+      caption,
+      category,
+      submittedBy
+    );
+
+    res.status(201).json({
+      ok: true,
+      id: result.lastInsertRowid,
+      message: 'Photo submitted for approval'
+    });
+  } catch (error) {
+    console.error('Photo upload error:', error);
+    res.status(500).json({ error: 'Unable to save photo' });
+  }
 });
 
 const __filename = fileURLToPath(import.meta.url);
