@@ -64,10 +64,34 @@ button { font: inherit; }
 }
 .hero-photo {
   position: absolute;
+  top: 0;
+  right: 0;
+  width: 62%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 35%;
+  display: block;
+}
+
+.hero-photo::after {
+  content: "";
+  position: absolute;
   inset: 0;
-  background:
-    linear-gradient(90deg, rgba(18,17,16,.60) 0%, rgba(18,17,16,.28) 42%, rgba(18,17,16,.05) 72%),
-    linear-gradient(135deg, #87796e 0%, #c2b8ac 45%, #6f746f 100%);
+  background: linear-gradient(
+    90deg,
+    #c9c0b7 0%,
+    rgba(201, 192, 183, 0.95) 8%,
+    rgba(201, 192, 183, 0.60) 20%,
+    rgba(201, 192, 183, 0.15) 35%,
+    rgba(201, 192, 183, 0) 48%
+  );
+  pointer-events: none;
 }
 .hero-photo-label {
   position: absolute;
