@@ -408,3 +408,45 @@ footer p { justify-self: end; color: #bdb5ae; font-size: 13px; }
     font-size: 36px;
   }
 }
+.admin-login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.admin-login-box {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  padding: 40px;
+  border: 1px solid #ddd0c7;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.admin-login-box h2 {
+  margin: 0 0 10px;
+  font-size: 36px;
+}
+
+.admin-login-box p {
+  margin: 0 0 24px;
+}
+
+.admin-login-box input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  margin-bottom: 22px;
+  border: 1px solid #d8cbc2;
+  font: inherit;
+}
+
+.admin-login-actions {
+  display: flex;
+  gap: 12px;
+}
