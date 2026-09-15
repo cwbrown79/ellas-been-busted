@@ -27,6 +27,7 @@ function PhotoPlaceholder({ index, title, tag }) {
 
 export default function App() {
     const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
  const [submitForm, setSubmitForm] = useState({
   photo: null,
   caption: '',
@@ -81,9 +82,42 @@ export default function App() {
           <a href="#submit">Submit a Photo</a>
           <a href="#about">About</a>
         </nav>
-        <button className="admin-button" type="button">Admin Login</button>
+        <button
+  className="admin-button"
+  type="button"
+  onClick={() => setShowAdminLogin(true)}
+>
+  Admin Login
+</button>
       </header>
+{showAdminLogin && (
+  <div className="admin-login-overlay">
+    <div className="admin-login-box">
+      <h2>Admin Login</h2>
+      <p>Enter the admin password to manage submitted photos.</p>
 
+      <input
+        type="password"
+        placeholder="Password"
+      />
+
+      <div className="admin-login-actions">
+        <button className="button light" type="button">
+          Login
+        </button>
+
+        <button
+          className="button"
+          type="button"
+          onClick={() => setShowAdminLogin(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      
       <main>
         <section className="hero" id="home">
           <div className="hero-photo">
