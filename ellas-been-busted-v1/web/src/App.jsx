@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const recentBusts = [
   { title: 'Sunsets suit you', tag: 'Beach' },
@@ -26,6 +26,8 @@ function PhotoPlaceholder({ index, title, tag }) {
 }
 
 export default function App() {
+    const [showSubmitForm, setShowSubmitForm] = useState(false);
+  
   return (
     <div className="site-shell">
       <header className="topbar">
@@ -98,10 +100,32 @@ export default function App() {
             <p className="eyebrow">Have a photo?</p>
             <h2>Submit a Bust</h2>
             <p>Help keep the memories going. Visitor submissions will be reviewed before appearing in the gallery.</p>
-            <button className="button light" type="button">Submit a Photo →</button>
+            <button
+  className="button light"
+  type="button"
+  onClick={() => setShowSubmitForm(true)}
+>
+  Submit a Photo →
+</button>
           </div>
         </section>
+{showSubmitForm && (
+  <section className="submit-form-section">
+    <div className="submit-form">
+      <h2>Submit a Photo</h2>
+      <p>Share your favorite Ella moment.</p>
 
+      <button
+        className="button"
+        type="button"
+        onClick={() => setShowSubmitForm(false)}
+      >
+        Cancel
+      </button>
+    </div>
+  </section>
+)}
+        
         <section className="about" id="about">
           <p className="eyebrow">About the site</p>
           <h2>Good people. Great memories.</h2>
