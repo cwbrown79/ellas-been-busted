@@ -42,8 +42,17 @@ export default function App() {
       <main>
         <section className="hero" id="home">
           <div className="hero-photo">
-            <div className="hero-photo-label">Your favorite current Ella photo goes here</div>
-          </div>
+  <video
+    className="hero-video"
+    autoPlay
+    muted
+    loop
+    playsInline
+  >
+    <source src="/ella-hero.mp4" type="video/mp4" />
+  </video>
+</div>
+
           <div className="hero-overlay">
             <p className="eyebrow">Same girl. Different stories.</p>
             <h1>Ella's Been<br/>Busted <span>♡</span></h1>
