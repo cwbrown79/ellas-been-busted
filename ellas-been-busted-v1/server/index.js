@@ -117,6 +117,44 @@ app.post('/api/admin/photos/:id/approve', (req, res) => {
   }
 });
 
+app.post('/api/admin/photos/:id/reject', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const photo = db.prepare(`
+      SELECT *
+      FROM photos
+      WHERE id = ?
+        AND status = 'pending'
+    `).get(req.params.id);
+
+    if (!photo) {
+      return res.status(404).json({ error: 'Pending photo not found' });
+    }
+
+    const filePath = path.join(uploadsDir, photo.filename);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    db.prepare(`
+      DELETE FROM photos
+      WHERE id = ?
+    `).run(req.params.id);
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to reject photo:', error);
+    res.status(500).json({ error: 'Failed to reject photo' });
+  }
+});
+
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
