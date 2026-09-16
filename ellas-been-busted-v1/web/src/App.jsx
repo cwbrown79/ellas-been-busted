@@ -28,12 +28,42 @@ function PhotoPlaceholder({ index, title, tag }) {
 export default function App() {
     const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+const [adminLoginError, setAdminLoginError] = useState('');
  const [submitForm, setSubmitForm] = useState({
   photo: null,
   caption: '',
   category: 'Everyday',
   submittedBy: ''
 });
+  const handleAdminLogin = async () => {
+  setAdminLoginError('');
+
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      setAdminLoginError('Incorrect password.');
+      return;
+    }
+
+    setShowAdminLogin(false);
+    setAdminPassword('');
+    alert('Admin login successful!');
+  } catch (error) {
+    console.error('Admin login error:', error);
+    setAdminLoginError('Unable to log in. Please try again.');
+  }
+};
+
   const handleSubmitPhoto = async () => {
   if (!submitForm.photo) {
     alert('Please choose a photo.');
@@ -96,15 +126,30 @@ export default function App() {
       <h2>Admin Login</h2>
       <p>Enter the admin password to manage submitted photos.</p>
 
-      <input
-        type="password"
-        placeholder="Password"
-      />
+    <input
+  type="password"
+  placeholder="Password"
+  value={adminPassword}
+  onChange={(e) => setAdminPassword(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      handleAdminLogin();
+    }
+  }}
+/>
+
+{adminLoginError && (
+  <p className="admin-login-error">{adminLoginError}</p>
+)}
 
       <div className="admin-login-actions">
-        <button className="button light" type="button">
-          Login
-        </button>
+        <button
+  className="button light"
+  type="button"
+  onClick={handleAdminLogin}
+>
+  Login
+</button>
 
         <button
           className="button"
