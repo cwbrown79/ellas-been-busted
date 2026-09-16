@@ -155,6 +155,23 @@ app.post('/api/admin/photos/:id/reject', (req, res) => {
   }
 });
 
+app.get('/api/photos', (req, res) => {
+  try {
+    const photos = db.prepare(`
+      SELECT id, filename, caption, category, submitted_by
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY id DESC
+    `).all();
+
+    res.json(photos);
+  } catch (error) {
+    console.error('Failed to load approved photos:', error);
+    res.status(500).json({ error: 'Failed to load approved photos' });
+  }
+});
+
+
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
