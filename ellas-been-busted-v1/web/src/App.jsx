@@ -27,8 +27,10 @@ function PhotoPlaceholder({ index, title, tag }) {
 
 export default function App() {
     const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
+const [showAdminLogin, setShowAdminLogin] = useState(false);
+const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+const [pendingPhotos, setPendingPhotos] = useState([]);
+const [adminPassword, setAdminPassword] = useState('');
 const [adminLoginError, setAdminLoginError] = useState('');
  const [submitForm, setSubmitForm] = useState({
   photo: null,
@@ -56,14 +58,95 @@ const [adminLoginError, setAdminLoginError] = useState('');
     }
 
     setShowAdminLogin(false);
-    setAdminPassword('');
-    alert('Admin login successful!');
+setShowAdminDashboard(true);
+await loadPendingPhotos();
   } catch (error) {
     console.error('Admin login error:', error);
     setAdminLoginError('Unable to log in. Please try again.');
   }
 };
+async function loadPendingPhotos() {
+  try {
+    const response = await fetch('/api/admin/photos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+      }),
+    });
 
+    if (!response.ok) {
+      throw new Error('Unable to load pending photos');
+    }
+
+    const photos = await response.json();
+    setPendingPhotos(photos);
+  } catch (error) {
+    console.error('Failed to load pending photos:', error);
+    alert('Unable to load pending photos.');
+  }
+}
+
+const handleApprovePhoto = async (photoId) => {
+  try {
+    const response = await fetch(`/api/admin/photos/${photoId}/approve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to approve photo');
+    }
+
+    setPendingPhotos((photos) =>
+      photos.filter((photo) => photo.id !== photoId)
+    );
+  } catch (error) {
+    console.error('Failed to approve photo:', error);
+    alert('Unable to approve photo.');
+  }
+};
+
+const handleRejectPhoto = async (photoId) => {
+  const confirmed = window.confirm(
+    'Reject this photo? This will permanently delete it.'
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/admin/photos/${photoId}/reject`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to reject photo');
+    }
+
+    setPendingPhotos((photos) =>
+      photos.filter((photo) => photo.id !== photoId)
+    );
+  } catch (error) {
+    console.error('Failed to reject photo:', error);
+    alert('Unable to reject photo.');
+  }
+};
+  
   const handleSubmitPhoto = async () => {
   if (!submitForm.photo) {
     alert('Please choose a photo.');
@@ -159,6 +242,76 @@ const [adminLoginError, setAdminLoginError] = useState('');
           Cancel
         </button>
       </div>
+    </div>
+  </div>
+)}
+
+{showAdminDashboard && (
+  <div className="admin-dashboard-overlay">
+    <div className="admin-dashboard">
+      <div className="admin-dashboard-header">
+        <div>
+          <h2>Photo Approvals</h2>
+          <p>Review photos submitted to Ella's Been Busted.</p>
+        </div>
+
+        <button
+          className="button"
+          type="button"
+          onClick={() => {
+            setShowAdminDashboard(false);
+            setAdminPassword('');
+            setPendingPhotos([]);
+          }}
+        >
+          Log Out
+        </button>
+      </div>
+
+      {pendingPhotos.length === 0 ? (
+        <p>No photos are waiting for approval.</p>
+      ) : (
+        <div className="admin-photo-grid">
+          {pendingPhotos.map((photo) => (
+            <div className="admin-photo-card" key={photo.id}>
+              <img
+                src={`/uploads/${photo.filename}`}
+                alt={photo.caption || 'Submitted Ella photo'}
+              />
+
+              <h3>{photo.caption || 'Untitled Photo'}</h3>
+
+              <p>
+                <strong>Category:</strong> {photo.category}
+              </p>
+
+              {photo.submitted_by && (
+                <p>
+                  <strong>Submitted by:</strong> {photo.submitted_by}
+                </p>
+              )}
+
+              <div className="admin-photo-actions">
+                <button
+                  className="button light"
+                  type="button"
+                  onClick={() => handleApprovePhoto(photo.id)}
+                >
+                  Approve
+                </button>
+
+                <button
+                  className="button"
+                  type="button"
+                  onClick={() => handleRejectPhoto(photo.id)}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </div>
 )}
