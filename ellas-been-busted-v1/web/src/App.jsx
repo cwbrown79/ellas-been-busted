@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const recentBusts = [
   { title: 'Sunsets suit you', tag: 'Beach' },
@@ -30,6 +30,10 @@ export default function App() {
 const [showAdminLogin, setShowAdminLogin] = useState(false);
 const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 const [pendingPhotos, setPendingPhotos] = useState([]);
+  const [approvedPhotos, setApprovedPhotos] = useState([]);
+  useEffect(() => {
+  loadApprovedPhotos();
+}, []);
 const [adminPassword, setAdminPassword] = useState('');
 const [adminLoginError, setAdminLoginError] = useState('');
  const [submitForm, setSubmitForm] = useState({
@@ -89,6 +93,21 @@ async function loadPendingPhotos() {
   }
 }
 
+async function loadApprovedPhotos() {
+  try {
+    const response = await fetch('/api/photos');
+
+    if (!response.ok) {
+      throw new Error('Unable to load approved photos');
+    }
+
+    const photos = await response.json();
+    setApprovedPhotos(photos);
+  } catch (error) {
+    console.error('Failed to load approved photos:', error);
+  }
+}
+  
 const handleApprovePhoto = async (photoId) => {
   try {
     const response = await fetch(`/api/admin/photos/${photoId}/approve`, {
@@ -108,6 +127,7 @@ const handleApprovePhoto = async (photoId) => {
     setPendingPhotos((photos) =>
       photos.filter((photo) => photo.id !== photoId)
     );
+  await loadApprovedPhotos();
   } catch (error) {
     console.error('Failed to approve photo:', error);
     alert('Unable to approve photo.');
@@ -359,11 +379,27 @@ const handleRejectPhoto = async (photoId) => {
             <a href="#gallery">View full gallery →</a>
           </div>
 
-          <div className="photo-grid">
-            {recentBusts.map((item, index) => (
-              <PhotoPlaceholder key={item.title} index={index} {...item} />
-            ))}
-          </div>
+         <div className="photo-grid">
+  {approvedPhotos.length > 0 ? (
+    approvedPhotos.map((photo) => (
+      <article className="photo-card" key={photo.id}>
+        <img
+          src={`/uploads/${photo.filename}`}
+          alt={photo.caption || "Ella photo"}
+          className="gallery-photo"
+        />
+        <div className="photo-copy">
+          <p className="photo-tag">{photo.category || "Everyday"}</p>
+          <h3>{photo.caption || "Ella's Been Busted"}</h3>
+        </div>
+      </article>
+    ))
+  ) : (
+    recentBusts.map((item, index) => (
+      <PhotoPlaceholder key={item.title} index={index} {...item} />
+    ))
+  )}
+</div>
         </section>
 
         <section className="submit-banner" id="submit">
