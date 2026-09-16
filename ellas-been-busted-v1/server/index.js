@@ -66,6 +66,30 @@ app.post('/api/admin/login', (req, res) => {
 
   res.json({ ok: true });
 });
+
+app.post('/api/admin/photos', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const photos = db.prepare(`
+      SELECT *
+      FROM photos
+      WHERE status = 'pending'
+      ORDER BY created_at DESC
+    `).all();
+
+    res.json(photos);
+  } catch (error) {
+    console.error('Failed to load pending photos:', error);
+    res.status(500).json({ error: 'Failed to load pending photos' });
+  }
+});
+
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
