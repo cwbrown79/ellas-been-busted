@@ -209,8 +209,9 @@ button { font: inherit; }
   display: block;
   width: 100%;
   height: 280px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: #f4f0ec;
 }
 .photo-placeholder {
   min-height: 280px;
