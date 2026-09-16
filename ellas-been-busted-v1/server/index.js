@@ -90,6 +90,33 @@ app.post('/api/admin/photos', (req, res) => {
   }
 });
 
+app.post('/api/admin/photos/:id/approve', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const result = db.prepare(`
+      UPDATE photos
+      SET status = 'approved'
+      WHERE id = ?
+        AND status = 'pending'
+    `).run(req.params.id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Pending photo not found' });
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to approve photo:', error);
+    res.status(500).json({ error: 'Failed to approve photo' });
+  }
+});
+
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
