@@ -269,6 +269,76 @@ const handleRejectPhoto = async (photoId) => {
   </div>
 )}
 
+{editingCropPhoto && (
+  <div className="admin-crop-overlay">
+    <div className="admin-crop-box">
+      <h2>Adjust Photo</h2>
+
+      <p>
+        Adjust how this photo will appear in the gallery.
+        The original photo will not be changed.
+      </p>
+
+      <div className="admin-crop-preview">
+        <img
+          src={`/uploads/${editingCropPhoto.filename}`}
+          alt={editingCropPhoto.caption || 'Photo crop preview'}
+          style={{
+            objectPosition: `center ${cropPosition}%`,
+            transform: `scale(${cropZoom / 100})`
+          }}
+        />
+      </div>
+
+      <label className="crop-control">
+        Vertical Position
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={cropPosition}
+          onChange={(e) => setCropPosition(Number(e.target.value))}
+        />
+      </label>
+
+      <label className="crop-control">
+        Zoom
+        <input
+          type="range"
+          min="100"
+          max="175"
+          value={cropZoom}
+          onChange={(e) => setCropZoom(Number(e.target.value))}
+        />
+      </label>
+
+      <div className="admin-crop-actions">
+        <button
+          className="button light"
+          type="button"
+          onClick={() => {
+            setEditingCropPhoto(null);
+          }}
+        >
+          Save Position
+        </button>
+
+        <button
+          className="button"
+          type="button"
+          onClick={() => {
+            setEditingCropPhoto(null);
+            setCropPosition(20);
+            setCropZoom(100);
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      
 {showAdminDashboard && (
   <div className="admin-dashboard-overlay">
     <div className="admin-dashboard">
