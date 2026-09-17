@@ -30,7 +30,10 @@ export default function App() {
 const [showAdminLogin, setShowAdminLogin] = useState(false);
 const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 const [pendingPhotos, setPendingPhotos] = useState([]);
-  const [approvedPhotos, setApprovedPhotos] = useState([]);
+const [approvedPhotos, setApprovedPhotos] = useState([]);
+const [editingCropPhoto, setEditingCropPhoto] = useState(null);
+const [cropPosition, setCropPosition] = useState(20);
+const [cropZoom, setCropZoom] = useState(100);
   useEffect(() => {
   loadApprovedPhotos();
 }, []);
