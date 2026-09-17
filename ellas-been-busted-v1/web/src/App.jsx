@@ -315,22 +315,34 @@ const handleRejectPhoto = async (photoId) => {
               )}
 
               <div className="admin-photo-actions">
-                <button
-                  className="button light"
-                  type="button"
-                  onClick={() => handleApprovePhoto(photo.id)}
-                >
-                  Approve
-                </button>
+  <button
+    className="button light"
+    type="button"
+    onClick={() => {
+      setEditingCropPhoto(photo);
+      setCropPosition(20);
+      setCropZoom(100);
+    }}
+  >
+    Adjust Photo
+  </button>
 
-                <button
-                  className="button"
-                  type="button"
-                  onClick={() => handleRejectPhoto(photo.id)}
-                >
-                  Reject
-                </button>
-              </div>
+  <button
+    className="button light"
+    type="button"
+    onClick={() => handleApprovePhoto(photo.id)}
+  >
+    Approve
+  </button>
+
+  <button
+    className="button"
+    type="button"
+    onClick={() => handleRejectPhoto(photo.id)}
+  >
+    Reject
+  </button>
+</div>
             </div>
           ))}
         </div>
