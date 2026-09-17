@@ -32,8 +32,11 @@ const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 const [pendingPhotos, setPendingPhotos] = useState([]);
 const [approvedPhotos, setApprovedPhotos] = useState([]);
 const [editingCropPhoto, setEditingCropPhoto] = useState(null);
-const [cropPosition, setCropPosition] = useState(20);
+const [cropX, setCropX] = useState(0);
+const [cropY, setCropY] = useState(0);
 const [cropZoom, setCropZoom] = useState(100);
+const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+const [cropDragStart, setCropDragStart] = useState({ x: 0, y: 0 });
   useEffect(() => {
   loadApprovedPhotos();
 }, []);
@@ -279,39 +282,57 @@ const handleRejectPhoto = async (photoId) => {
         The original photo will not be changed.
       </p>
 
-      <div className="admin-crop-preview">
-        <img
-          src={`/uploads/${editingCropPhoto.filename}`}
-          alt={editingCropPhoto.caption || 'Photo crop preview'}
-          style={{
-            objectPosition: `center ${cropPosition}%`,
-            transform: `scale(${cropZoom / 100})`
-          }}
-        />
-      </div>
+    <div
+  className="admin-crop-preview"
+  onMouseDown={(e) => {
+    e.preventDefault();
+    setIsDraggingCrop(true);
+    setCropDragStart({
+      x: e.clientX - cropX,
+      y: e.clientY - cropY
+    });
+  }}
+  onMouseMove={(e) => {
+    if (!isDraggingCrop) return;
 
-      <label className="crop-control">
-        Vertical Position
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={cropPosition}
-          onChange={(e) => setCropPosition(Number(e.target.value))}
-        />
-      </label>
+    setCropX(e.clientX - cropDragStart.x);
+    setCropY(e.clientY - cropDragStart.y);
+  }}
+  onMouseUp={() => setIsDraggingCrop(false)}
+  onMouseLeave={() => setIsDraggingCrop(false)}
+  style={{
+    cursor: isDraggingCrop ? 'grabbing' : 'grab'
+  }}
+>
+  <img
+    src={`/uploads/${editingCropPhoto.filename}`}
+    alt={editingCropPhoto.caption || 'Photo crop preview'}
+    draggable="false"
+    style={{
+      transform: `translate(${cropX}px, ${cropY}px) scale(${cropZoom / 100})`
+    }}
+  />
+</div>
 
-      <label className="crop-control">
-        Zoom
-        <input
-          type="range"
-          min="100"
-          max="175"
-          value={cropZoom}
-          onChange={(e) => setCropZoom(Number(e.target.value))}
-        />
-      </label>
+<div className="crop-zoom-controls">
+  <button
+    className="button"
+    type="button"
+    onClick={() => setCropZoom((z) => Math.max(50, z - 10))}
+  >
+    −
+  </button>
 
+  <span>{cropZoom}%</span>
+
+  <button
+    className="button"
+    type="button"
+    onClick={() => setCropZoom((z) => Math.min(250, z + 10))}
+  >
+    +
+  </button>
+</div>
       <div className="admin-crop-actions">
         <button
           className="button light"
@@ -328,7 +349,8 @@ const handleRejectPhoto = async (photoId) => {
           type="button"
           onClick={() => {
             setEditingCropPhoto(null);
-            setCropPosition(20);
+           setCropX(0);
+setCropY(0);
             setCropZoom(100);
           }}
         >
@@ -389,9 +411,10 @@ const handleRejectPhoto = async (photoId) => {
     className="button light"
     type="button"
     onClick={() => {
-      setEditingCropPhoto(photo);
-      setCropPosition(20);
-      setCropZoom(100);
+     setEditingCropPhoto(photo);
+setCropX(0);
+setCropY(0);
+setCropZoom(100);
     }}
   >
     Adjust Photo
