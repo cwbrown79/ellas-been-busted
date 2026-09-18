@@ -44,6 +44,21 @@ db.exec(`
   )
 `);
 
+// Add photo crop settings to existing databases
+const photoColumns = db.prepare(`PRAGMA table_info(photos)`).all();
+
+if (!photoColumns.some(col => col.name === 'crop_x')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN crop_x REAL DEFAULT 0`);
+}
+
+if (!photoColumns.some(col => col.name === 'crop_y')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN crop_y REAL DEFAULT 0`);
+}
+
+if (!photoColumns.some(col => col.name === 'crop_zoom')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN crop_zoom REAL DEFAULT 1`);
+}
+
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
@@ -109,7 +124,6 @@ app.post('/api/admin/photos/:id/approve', (req, res) => {
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Pending photo not found' });
     }
-
     res.json({ ok: true });
   } catch (error) {
     console.error('Failed to approve photo:', error);
