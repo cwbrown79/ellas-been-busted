@@ -503,11 +503,16 @@ setCropZoom(100);
   {approvedPhotos.length > 0 ? (
     approvedPhotos.map((photo) => (
       <article className="photo-card" key={photo.id}>
-        <img
-          src={`/uploads/${photo.filename}`}
-          alt={photo.caption || "Ella photo"}
-          className="gallery-photo"
-        />
+       <div className="gallery-photo-frame">
+  <img
+    src={`/uploads/${photo.filename}`}
+    alt={photo.caption || "Ella photo"}
+    className="gallery-photo"
+    style={{
+      transform: `translate(${photo.crop_x ?? 0}px, ${photo.crop_y ?? 0}px) scale(${(photo.crop_zoom ?? 100) / 100})`,
+    }}
+  />
+</div>
         <div className="photo-copy">
           <p className="photo-tag">{photo.category || "Everyday"}</p>
           <h3>{photo.caption || "Ella's Been Busted"}</h3>
