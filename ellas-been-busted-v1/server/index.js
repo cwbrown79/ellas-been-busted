@@ -106,7 +106,7 @@ app.post('/api/admin/photos', (req, res) => {
 });
 
 app.post('/api/admin/photos/:id/approve', (req, res) => {
-  const { password } = req.body;
+  const { password, cropX, cropY, cropZoom } = req.body;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminPassword || password !== adminPassword) {
@@ -114,16 +114,25 @@ app.post('/api/admin/photos/:id/approve', (req, res) => {
   }
 
   try {
+    const safeCropX = Number.isFinite(Number(cropX)) ? Number(cropX) : 0;
+    const safeCropY = Number.isFinite(Number(cropY)) ? Number(cropY) : 0;
+    const safeCropZoom = Number.isFinite(Number(cropZoom)) ? Number(cropZoom) : 1;
+
     const result = db.prepare(`
       UPDATE photos
-      SET status = 'approved'
+      SET status = 'approved',
+          approved_at = CURRENT_TIMESTAMP,
+          crop_x = ?,
+          crop_y = ?,
+          crop_zoom = ?
       WHERE id = ?
         AND status = 'pending'
-    `).run(req.params.id);
+    `).run(safeCropX, safeCropY, safeCropZoom, req.params.id);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Pending photo not found' });
     }
+
     res.json({ ok: true });
   } catch (error) {
     console.error('Failed to approve photo:', error);
