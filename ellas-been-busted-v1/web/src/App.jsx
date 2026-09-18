@@ -37,6 +37,7 @@ const [cropY, setCropY] = useState(0);
 const [cropZoom, setCropZoom] = useState(100);
 const [isDraggingCrop, setIsDraggingCrop] = useState(false);
 const [cropDragStart, setCropDragStart] = useState({ x: 0, y: 0 });
+  const [savedPhotoCrops, setSavedPhotoCrops] = useState({});
   useEffect(() => {
   loadApprovedPhotos();
 }, []);
@@ -121,9 +122,12 @@ const handleApprovePhoto = async (photoId) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        password: adminPassword,
-      }),
+     body: JSON.stringify({
+  password: adminPassword,
+  cropX: savedPhotoCrops[photoId]?.cropX ?? 0,
+  cropY: savedPhotoCrops[photoId]?.cropY ?? 0,
+  cropZoom: savedPhotoCrops[photoId]?.cropZoom ?? 100,
+}),
     });
 
     if (!response.ok) {
@@ -337,9 +341,17 @@ const handleRejectPhoto = async (photoId) => {
         <button
           className="button light"
           type="button"
-          onClick={() => {
-            setEditingCropPhoto(null);
-          }}
+         onClick={() => {
+  setSavedPhotoCrops((current) => ({
+    ...current,
+    [editingCropPhoto.id]: {
+      cropX,
+      cropY,
+      cropZoom,
+    },
+  }));
+  setEditingCropPhoto(null);
+}}
         >
           Save Position
         </button>
