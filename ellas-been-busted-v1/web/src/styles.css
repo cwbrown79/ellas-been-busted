@@ -209,16 +209,18 @@ button { font: inherit; }
   width: 100%;
   height: 440px;
   overflow: hidden;
+  background: #d9d9d9;
 }
 
 .photo-card .gallery-photo {
   display: block;
   width: 100%;
   height: 440px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   transform-origin: center center;
 }
+
 .photo-placeholder {
   min-height: 280px;
   display: flex;
