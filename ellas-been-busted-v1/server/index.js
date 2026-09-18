@@ -56,8 +56,15 @@ if (!photoColumns.some(col => col.name === 'crop_y')) {
 }
 
 if (!photoColumns.some(col => col.name === 'crop_zoom')) {
-  db.exec(`ALTER TABLE photos ADD COLUMN crop_zoom REAL DEFAULT 1`);
+  db.exec(`ALTER TABLE photos ADD COLUMN crop_zoom REAL DEFAULT 100`);
 }
+
+// Fix photos created before crop zoom used percentage values
+db.prepare(`
+  UPDATE photos
+  SET crop_zoom = 100
+  WHERE crop_zoom = 1
+`).run();
 
 app.use(cors());
 app.use(express.json());
