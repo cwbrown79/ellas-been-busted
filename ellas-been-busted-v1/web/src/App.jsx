@@ -528,10 +528,16 @@ setCropZoom(100);
         </section>
 
         <section className="submit-banner" id="submit">
-          <div className="polaroids" aria-hidden="true">
-            <div className="polaroid p1"><span>Then</span></div>
-            <div className="polaroid p2"><span>Now</span></div>
-          </div>
+         <div className="polaroids" aria-hidden="true">
+  <div className="polaroid p1">
+    <img src="/ella-then.jpg" alt="" />
+    <span>Then</span>
+  </div>
+  <div className="polaroid p2">
+    <img src="/ella-now.jpg" alt="" />
+    <span>Now</span>
+  </div>
+</div>
           <div className="submit-copy">
             <p className="eyebrow">Have a photo?</p>
             <h2>Submit a Bust</h2>
