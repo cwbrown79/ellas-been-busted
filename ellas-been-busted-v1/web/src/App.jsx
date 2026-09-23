@@ -32,6 +32,12 @@ const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 const [pendingPhotos, setPendingPhotos] = useState([]);
 const [approvedPhotos, setApprovedPhotos] = useState([]);
 const [showOldBusts, setShowOldBusts] = useState(false);
+
+const [editingApprovedPhoto, setEditingApprovedPhoto] = useState(null);
+const [editApprovedCaption, setEditApprovedCaption] = useState('');
+const [editApprovedCategory, setEditApprovedCategory] = useState('');
+const [draggedPhotoId, setDraggedPhotoId] = useState(null);
+
 const [editingCropPhoto, setEditingCropPhoto] = useState(null);
 const [cropX, setCropX] = useState(0);
 const [cropY, setCropY] = useState(0);
@@ -181,6 +187,39 @@ const handleSaveCrop = async () => {
     alert('Unable to save photo position.');
   }
 };
+
+  const handleDeleteApprovedPhoto = async (photoId) => {
+  const confirmed = window.confirm(
+    "Delete this approved bust? This will permanently remove it from the gallery."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/admin/photos/${photoId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to delete approved bust.");
+    }
+
+    setApprovedPhotos((photos) =>
+      photos.filter((photo) => photo.id !== photoId)
+    );
+  } catch (error) {
+    console.error("Failed to delete approved bust:", error);
+    alert("Unable to delete approved bust.");
+  }
+};
   
 const handleRejectPhoto = async (photoId) => {
   const confirmed = window.confirm(
@@ -213,8 +252,91 @@ const handleRejectPhoto = async (photoId) => {
     console.error('Failed to reject photo:', error);
     alert('Unable to reject photo.');
   }
-};
-  
+  };
+
+  const handleSaveApprovedEdit = async () => {
+    if (!editingApprovedPhoto) return;
+
+    try {
+      const response = await fetch(`/api/admin/photos/${editingApprovedPhoto.id}/edit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: adminPassword,
+          caption: editApprovedCaption,
+          category: editApprovedCategory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to update bust');
+      }
+
+      setEditingApprovedPhoto(null);
+      setEditApprovedCaption('');
+      setEditApprovedCategory('');
+      await loadApprovedPhotos();
+    } catch (error) {
+      console.error('Failed to update approved bust:', error);
+      alert('Unable to update bust.');
+    }
+  };
+
+  const handleRemoveApprovedPhoto = async (photoId) => {
+    const confirmed = window.confirm(
+      'Remove this bust? This will permanently delete the photo.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/admin/photos/${photoId}/remove`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: adminPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to remove bust');
+      }
+
+      await loadApprovedPhotos();
+    } catch (error) {
+      console.error('Failed to remove approved bust:', error);
+      alert('Unable to remove bust.');
+    }
+  };
+
+  const handleMoveApprovedPhoto = async (photoId, direction) => {
+    try {
+      const response = await fetch(`/api/admin/photos/${photoId}/move`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: adminPassword,
+          direction,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to move bust');
+      }
+
+      await loadApprovedPhotos();
+    } catch (error) {
+      console.error('Failed to move approved bust:', error);
+      alert('Unable to move bust.');
+    }
+  };
+
   const handleSubmitPhoto = async () => {
   if (!submitForm.photo) {
     alert('Please choose a photo.');
@@ -405,6 +527,66 @@ setCropY(0);
     </div>
   </div>
 )}
+
+            {editingApprovedPhoto && (
+        <div className="admin-crop-overlay">
+          <div className="admin-crop-box">
+            <h2>Edit Bust</h2>
+
+            <p>
+              Update the caption or category for this approved bust.
+            </p>
+
+            <label>
+              Caption
+              <input
+                type="text"
+                value={editApprovedCaption}
+                onChange={(e) => setEditApprovedCaption(e.target.value)}
+              />
+            </label>
+
+            <label>
+              Category
+              <select
+                value={editApprovedCategory}
+                onChange={(e) => setEditApprovedCategory(e.target.value)}
+              >
+                <option value="Everyday">Everyday</option>
+                <option value="School">School</option>
+                <option value="Sports">Sports</option>
+                <option value="Travel">Travel</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+
+            <div className="admin-crop-actions">
+              <button
+                className="button light"
+                type="button"
+                onClick={handleSaveApprovedEdit}
+              >
+                Save Changes
+              </button>
+
+              <button
+                className="button"
+                type="button"
+                onClick={() => {
+                  setEditingApprovedPhoto(null);
+                  setEditApprovedCaption('');
+                  setEditApprovedCategory('');
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAdminDashboard && (
       
 {showAdminDashboard && (
   <div className="admin-dashboard-overlay">
@@ -488,6 +670,64 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
           ))}
         </div>
       )}
+      <div className="admin-approved-section">
+  <div className="admin-approved-header">
+    <div>
+      <h2>Approved Busts</h2>
+      <p>Manage photos currently shown in the Recent Busts gallery.</p>
+    </div>
+  </div>
+
+  {approvedPhotos.length === 0 ? (
+    <p>No approved busts yet.</p>
+  ) : (
+    <div className="admin-photo-grid">
+      {approvedPhotos.map((photo) => (
+        <div className="admin-photo-card" key={photo.id}>
+          <img
+            src={`/uploads/${photo.filename}`}
+            alt={photo.caption || "Approved Ella photo"}
+          />
+
+          <h3>{photo.caption || "Untitled Photo"}</h3>
+
+          <p>
+            <strong>Category:</strong> {photo.category || "Everyday"}
+          </p>
+
+          {photo.submitted_by && (
+            <p>
+              <strong>Submitted by:</strong> {photo.submitted_by}
+            </p>
+          )}
+
+          <div className="admin-photo-actions">
+            <button
+              className="button light"
+              type="button"
+              onClick={() => {
+                setEditingCropPhoto(photo);
+                setCropX(photo.crop_x ?? 0);
+                setCropY(photo.crop_y ?? 0);
+                setCropZoom(photo.crop_zoom ?? 100);
+              }}
+            >
+              Adjust Photo
+            </button>
+
+            <button
+              className="button"
+              type="button"
+              onClick={() => handleDeleteApprovedPhoto(photo.id)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
     </div>
   </div>
 )}
@@ -579,29 +819,82 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
           ? approvedPhotos.slice(20)
           : approvedPhotos.slice(0, 20)
         ).map((photo) => (
-          <article className="photo-card" key={photo.id}>
-            <div className="gallery-photo-frame">
-              <img
-                src={`/uploads/${photo.filename}`}
-                alt={photo.caption || "Ella photo"}
-                className="gallery-photo"
-                style={{
-                  transform: `translate(${photo.crop_x ?? 0}px, ${photo.crop_y ?? 0}px) scale(${(photo.crop_zoom ?? 100) / 100})`,
-                }}
-              />
-            </div>
+  <article className="photo-card" key={photo.id}>
+    <div className="gallery-photo-frame">
+      <img
+        src={`/uploads/${photo.filename}`}
+        alt={photo.caption || "Ella photo"}
+        className="gallery-photo"
+        style={{
+          transform: `translate(${photo.crop_x ?? 0}px, ${photo.crop_y ?? 0}px) scale(${(photo.crop_zoom ?? 100) / 100})`,
+        }}
+      />
+    </div>
 
-            <div className="photo-copy">
-              <p className="photo-tag">
-                {photo.category || 'Everyday'}
-              </p>
+    <div className="photo-copy">
+      <p className="photo-tag">
+        {photo.category || 'Everyday'}
+      </p>
 
-              <h3>
-                {photo.caption || "Ella's Been Busted"}
-              </h3>
-            </div>
-          </article>
-        ))
+      <h3>
+        {photo.caption || "Ella's Been Busted"}
+      </h3>
+
+      {showAdminDashboard && (
+        <div className="approved-photo-admin">
+          <button
+            className="button light"
+            type="button"
+            onClick={() => {
+              setEditingApprovedPhoto(photo);
+              setEditApprovedCaption(photo.caption || '');
+              setEditApprovedCategory(photo.category || 'Everyday');
+            }}
+          >
+            Edit
+          </button>
+
+          <button
+            className="button light"
+            type="button"
+            onClick={() => {
+              setEditingCropPhoto(photo);
+              setCropX(photo.crop_x ?? 0);
+              setCropY(photo.crop_y ?? 0);
+              setCropZoom(photo.crop_zoom ?? 100);
+            }}
+          >
+            Adjust Photo
+          </button>
+
+          <button
+            className="button light"
+            type="button"
+            onClick={() => handleMoveApprovedPhoto(photo.id, 'up')}
+          >
+            Move Up
+          </button>
+
+          <button
+            className="button light"
+            type="button"
+            onClick={() => handleMoveApprovedPhoto(photo.id, 'down')}
+          >
+            Move Down
+          </button>
+
+          <button
+            className="button"
+            type="button"
+            onClick={() => handleRemoveApprovedPhoto(photo.id)}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+    </div>
+  </article>
+))
       ) : (
         <div className="empty-gallery">
           <p>No old busts yet.</p>
