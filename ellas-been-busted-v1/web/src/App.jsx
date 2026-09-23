@@ -222,7 +222,12 @@ const handleRejectPhoto = async (photoId) => {
         <a className="brand" href="#home">Ella's Been Busted <span>♡</span></a>
         <nav className="nav">
           <a href="#home">Home</a>
-          <a href="#gallery">Gallery</a>
+          <a
+  href="#gallery"
+  onClick={() => setShowOldBusts(false)}
+>
+  Gallery
+</a>
           <a href="#submit">Submit a Photo</a>
           <a href="#about">About</a>
         </nav>
@@ -491,42 +496,98 @@ setCropZoom(100);
           <div><strong>Enjoy</strong><span>New photos and throwbacks added regularly.</span></div>
         </section>
 
-        <section className="gallery-section" id="gallery">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">The latest evidence</p>
-              <h2>Recent Busts</h2>
-            </div>
-            <a href="#gallery">View full gallery →</a>
-          </div>
+      <section className="gallery-section" id="gallery">
+  <div className="section-heading">
+    <div>
+      <p className="eyebrow">
+        {showOldBusts ? 'From the archives' : 'The latest evidence'}
+      </p>
 
-         <div className="photo-grid">
-  {approvedPhotos.length > 0 ? (
-  approvedPhotos.slice(0, 20).map((photo) => (
-      <article className="photo-card" key={photo.id}>
-       <div className="gallery-photo-frame">
-  <img
-    src={`/uploads/${photo.filename}`}
-    alt={photo.caption || "Ella photo"}
-    className="gallery-photo"
-    style={{
-      transform: `translate(${photo.crop_x ?? 0}px, ${photo.crop_y ?? 0}px) scale(${(photo.crop_zoom ?? 100) / 100})`,
-    }}
-  />
-</div>
-        <div className="photo-copy">
-          <p className="photo-tag">{photo.category || "Everyday"}</p>
-          <h3>{photo.caption || "Ella's Been Busted"}</h3>
+      <h2>
+        {showOldBusts ? 'Old Busts' : 'Recent Busts'}
+      </h2>
+    </div>
+
+    {showOldBusts ? (
+      <button
+        className="gallery-link-button"
+        type="button"
+        onClick={() => {
+          setShowOldBusts(false);
+          setTimeout(() => {
+            document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' });
+          }, 0);
+        }}
+      >
+        ← Back to Recent Busts
+      </button>
+    ) : (
+      approvedPhotos.length > 20 && (
+        <button
+          className="gallery-link-button"
+          type="button"
+          onClick={() => {
+            setShowOldBusts(true);
+            setTimeout(() => {
+              document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' });
+            }, 0);
+          }}
+        >
+          View Old Busts →
+        </button>
+      )
+    )}
+  </div>
+
+  <div className="photo-grid">
+    {approvedPhotos.length > 0 ? (
+      (showOldBusts
+        ? approvedPhotos.slice(20)
+        : approvedPhotos.slice(0, 20)
+      ).length > 0 ? (
+        (showOldBusts
+          ? approvedPhotos.slice(20)
+          : approvedPhotos.slice(0, 20)
+        ).map((photo) => (
+          <article className="photo-card" key={photo.id}>
+            <div className="gallery-photo-frame">
+              <img
+                src={`/uploads/${photo.filename}`}
+                alt={photo.caption || "Ella photo"}
+                className="gallery-photo"
+                style={{
+                  transform: `translate(${photo.crop_x ?? 0}px, ${photo.crop_y ?? 0}px) scale(${(photo.crop_zoom ?? 100) / 100})`,
+                }}
+              />
+            </div>
+
+            <div className="photo-copy">
+              <p className="photo-tag">
+                {photo.category || 'Everyday'}
+              </p>
+
+              <h3>
+                {photo.caption || "Ella's Been Busted"}
+              </h3>
+            </div>
+          </article>
+        ))
+      ) : (
+        <div className="empty-gallery">
+          <p>No old busts yet.</p>
         </div>
-      </article>
-    ))
-  ) : (
-    recentBusts.map((item, index) => (
-      <PhotoPlaceholder key={item.title} index={index} {...item} />
-    ))
-  )}
-</div>
-        </section>
+      )
+    ) : (
+      recentBusts.map((item, index) => (
+        <PhotoPlaceholder
+          key={item.title}
+          index={index}
+          {...item}
+        />
+      ))
+    )}
+  </div>
+</section>
 
         <section className="submit-banner" id="submit">
          <div className="polaroids" aria-hidden="true">
@@ -646,7 +707,12 @@ setCropZoom(100);
         <div className="footer-brand">Ella's Been Busted ♡</div>
         <div className="footer-links">
           <a href="#home">Home</a>
-          <a href="#gallery">Gallery</a>
+          <a
+  href="#gallery"
+  onClick={() => setShowOldBusts(false)}
+>
+  Gallery
+</a>
           <a href="#submit">Submit</a>
           <a href="#about">About</a>
         </div>
