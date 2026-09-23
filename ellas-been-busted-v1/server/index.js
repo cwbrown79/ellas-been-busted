@@ -175,21 +175,15 @@ const approvePhoto = db.transaction(() => {
   `).run();
 
   // The newly approved bust becomes the first photo.
-  db.prepare(`
-    UPDATE photos
-    SET status = 'approved',
-        approved_at = CURRENT_TIMESTAMP,
-        crop_x = ?,
-        crop_y = ?,
-        crop_zoom = ?,
-        display_order = 1
-    WHERE id = ?
-  `).run(
-    safeCropX,
-    safeCropY,
-    safeCropZoom,
-    req.params.id
-  );
+ db.prepare(`
+  UPDATE photos
+  SET status = 'approved',
+      approved_at = CURRENT_TIMESTAMP,
+      display_order = 1
+  WHERE id = ?
+`).run(
+  req.params.id
+);
 
   return true;
 });
@@ -347,29 +341,28 @@ app.post('/api/admin/photos/:id/crop', (req, res) => {
     const safeCropY = Number.isFinite(Number(cropY)) ? Number(cropY) : 0;
     const safeCropZoom = Number.isFinite(Number(cropZoom)) ? Number(cropZoom) : 100;
 
-    const result = db.prepare(`
-      UPDATE photos
-      SET crop_x = ?,
-          crop_y = ?,
-          crop_zoom = ?
-      WHERE id = ?
-        AND status = 'approved'
-    `).run(
-      safeCropX,
-      safeCropY,
-      safeCropZoom,
-      req.params.id
-    );
+   const result = db.prepare(`
+  UPDATE photos
+  SET crop_x = ?,
+      crop_y = ?,
+      crop_zoom = ?
+  WHERE id = ?
+`).run(
+  safeCropX,
+  safeCropY,
+  safeCropZoom,
+  req.params.id
+);
 
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Approved photo not found' });
-    }
+if (result.changes === 0) {
+  return res.status(404).json({ error: 'Photo not found' });
+}
 
-    res.json({ ok: true });
-  } catch (error) {
-    console.error('Failed to update approved photo crop:', error);
-    res.status(500).json({ error: 'Failed to update approved photo crop' });
-  }
+res.json({ ok: true });
+} catch (error) {
+  console.error('Failed to update photo crop:', error);
+  res.status(500).json({ error: 'Failed to update photo crop' });
+}
 });
 
 // Permanently remove an approved bust
