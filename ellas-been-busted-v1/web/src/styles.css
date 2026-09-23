@@ -576,3 +576,25 @@ footer p { justify-self: end; color: #bdb5ae; font-size: 13px; }
     height: 360px;
   }
 }
+
+.gallery-link-button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.gallery-link-button:hover {
+  opacity: 0.65;
+}
+
+.empty-gallery {
+  grid-column: 1 / -1;
+  padding: 48px 20px;
+  text-align: center;
+  opacity: 0.65;
+}
