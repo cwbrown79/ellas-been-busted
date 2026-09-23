@@ -145,6 +145,43 @@ const handleApprovePhoto = async (photoId) => {
   }
 };
 
+const handleSaveCrop = async () => {
+  if (!editingCropPhoto) return;
+
+  try {
+    const response = await fetch(`/api/admin/photos/${editingCropPhoto.id}/crop`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        password: adminPassword,
+        cropX,
+        cropY,
+        cropZoom,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to save photo position');
+    }
+
+    setSavedPhotoCrops((current) => ({
+      ...current,
+      [editingCropPhoto.id]: {
+        cropX,
+        cropY,
+        cropZoom,
+      },
+    }));
+
+    setEditingCropPhoto(null);
+  } catch (error) {
+    console.error('Failed to save photo position:', error);
+    alert('Unable to save photo position.');
+  }
+};
+  
 const handleRejectPhoto = async (photoId) => {
   const confirmed = window.confirm(
     'Reject this photo? This will permanently delete it.'
@@ -344,23 +381,13 @@ const handleRejectPhoto = async (photoId) => {
   </button>
 </div>
       <div className="admin-crop-actions">
-        <button
-          className="button light"
-          type="button"
-         onClick={() => {
-  setSavedPhotoCrops((current) => ({
-    ...current,
-    [editingCropPhoto.id]: {
-      cropX,
-      cropY,
-      cropZoom,
-    },
-  }));
-  setEditingCropPhoto(null);
-}}
-        >
-          Save Position
-        </button>
+       <button
+  className="button light"
+  type="button"
+  onClick={handleSaveCrop}
+>
+  Save Position
+</button>
 
         <button
           className="button"
@@ -429,10 +456,13 @@ setCropY(0);
     className="button light"
     type="button"
     onClick={() => {
-     setEditingCropPhoto(photo);
-setCropX(0);
-setCropY(0);
-setCropZoom(100);
+    setEditingCropPhoto(photo);
+
+const savedCrop = savedPhotoCrops[photo.id];
+
+setCropX(savedCrop?.cropX ?? photo.crop_x ?? 0);
+setCropY(savedCrop?.cropY ?? photo.crop_y ?? 0);
+setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
     }}
   >
     Adjust Photo
