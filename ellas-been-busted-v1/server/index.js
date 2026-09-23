@@ -300,6 +300,184 @@ app.get('/api/photos/old', (req, res) => {
   }
 });
 
+// Edit an approved bust
+app.post('/api/admin/photos/:id/edit', (req, res) => {
+  const { password, caption, category } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const result = db.prepare(`
+      UPDATE photos
+      SET caption = ?,
+          category = ?
+      WHERE id = ?
+        AND status = 'approved'
+    `).run(
+      caption || '',
+      category || 'Everyday',
+      req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Approved photo not found' });
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to edit approved photo:', error);
+    res.status(500).json({ error: 'Failed to edit approved photo' });
+  }
+});
+
+// Update crop settings for an approved bust
+app.post('/api/admin/photos/:id/crop', (req, res) => {
+  const { password, cropX, cropY, cropZoom } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const safeCropX = Number.isFinite(Number(cropX)) ? Number(cropX) : 0;
+    const safeCropY = Number.isFinite(Number(cropY)) ? Number(cropY) : 0;
+    const safeCropZoom = Number.isFinite(Number(cropZoom)) ? Number(cropZoom) : 100;
+
+    const result = db.prepare(`
+      UPDATE photos
+      SET crop_x = ?,
+          crop_y = ?,
+          crop_zoom = ?
+      WHERE id = ?
+        AND status = 'approved'
+    `).run(
+      safeCropX,
+      safeCropY,
+      safeCropZoom,
+      req.params.id
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Approved photo not found' });
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to update approved photo crop:', error);
+    res.status(500).json({ error: 'Failed to update approved photo crop' });
+  }
+});
+
+// Permanently remove an approved bust
+app.post('/api/admin/photos/:id/delete', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const photo = db.prepare(`
+      SELECT *
+      FROM photos
+      WHERE id = ?
+        AND status = 'approved'
+    `).get(req.params.id);
+
+    if (!photo) {
+      return res.status(404).json({ error: 'Approved photo not found' });
+    }
+
+    const removePhoto = db.transaction(() => {
+      db.prepare(`
+        DELETE FROM photos
+        WHERE id = ?
+      `).run(req.params.id);
+
+      // Close the gap left in the display order.
+      db.prepare(`
+        UPDATE photos
+        SET display_order = display_order - 1
+        WHERE status = 'approved'
+          AND display_order > ?
+      `).run(photo.display_order);
+    });
+
+    removePhoto();
+
+    const filePath = path.join(uploadsDir, photo.filename);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to remove approved photo:', error);
+    res.status(500).json({ error: 'Failed to remove approved photo' });
+  }
+});
+
+// Save the display order of approved busts
+app.post('/api/admin/photos/reorder', (req, res) => {
+  const { password, photoIds } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (!Array.isArray(photoIds)) {
+    return res.status(400).json({ error: 'photoIds must be an array' });
+  }
+
+  try {
+    const approvedPhotos = db.prepare(`
+      SELECT id
+      FROM photos
+      WHERE status = 'approved'
+    `).all();
+
+    const approvedIds = approvedPhotos.map(photo => Number(photo.id));
+    const requestedIds = photoIds.map(id => Number(id));
+
+    if (
+      requestedIds.length !== approvedIds.length ||
+      new Set(requestedIds).size !== requestedIds.length ||
+      !requestedIds.every(id => approvedIds.includes(id))
+    ) {
+      return res.status(400).json({
+        error: 'Photo order must include every approved photo exactly once'
+      });
+    }
+
+    const updateOrder = db.prepare(`
+      UPDATE photos
+      SET display_order = ?
+      WHERE id = ?
+        AND status = 'approved'
+    `);
+
+    const saveOrder = db.transaction((ids) => {
+      ids.forEach((id, index) => {
+        updateOrder.run(index + 1, id);
+      });
+    });
+
+    saveOrder(requestedIds);
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to reorder approved photos:', error);
+    res.status(500).json({ error: 'Failed to reorder approved photos' });
+  }
+});
+
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
