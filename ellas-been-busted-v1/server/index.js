@@ -59,6 +59,36 @@ if (!photoColumns.some(col => col.name === 'crop_zoom')) {
   db.exec(`ALTER TABLE photos ADD COLUMN crop_zoom REAL DEFAULT 100`);
 }
 
+if (!photoColumns.some(col => col.name === 'display_order')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN display_order INTEGER`);
+}
+
+// Give existing approved photos a display order.
+// Newest photos receive the lowest number and appear first.
+const approvedPhotosWithoutOrder = db.prepare(`
+  SELECT id
+  FROM photos
+  WHERE status = 'approved'
+    AND display_order IS NULL
+  ORDER BY approved_at DESC, id DESC
+`).all();
+
+if (approvedPhotosWithoutOrder.length > 0) {
+  const updateDisplayOrder = db.prepare(`
+    UPDATE photos
+    SET display_order = ?
+    WHERE id = ?
+  `);
+
+  const assignDisplayOrders = db.transaction((photos) => {
+    photos.forEach((photo, index) => {
+      updateDisplayOrder.run(index + 1, photo.id);
+    });
+  });
+
+  assignDisplayOrders(approvedPhotosWithoutOrder);
+}
+
 // Fix photos created before crop zoom used percentage values
 db.prepare(`
   UPDATE photos
