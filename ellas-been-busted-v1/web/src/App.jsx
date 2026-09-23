@@ -501,7 +501,7 @@ setCropZoom(100);
 
          <div className="photo-grid">
   {approvedPhotos.length > 0 ? (
-    approvedPhotos.map((photo) => (
+  approvedPhotos.slice(0, 20).map((photo) => (
       <article className="photo-card" key={photo.id}>
        <div className="gallery-photo-frame">
   <img
