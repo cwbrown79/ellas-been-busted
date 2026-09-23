@@ -155,20 +155,50 @@ app.post('/api/admin/photos/:id/approve', (req, res) => {
     const safeCropY = Number.isFinite(Number(cropY)) ? Number(cropY) : 0;
     const safeCropZoom = Number.isFinite(Number(cropZoom)) ? Number(cropZoom) : 1;
 
-    const result = db.prepare(`
-      UPDATE photos
-      SET status = 'approved',
-          approved_at = CURRENT_TIMESTAMP,
-          crop_x = ?,
-          crop_y = ?,
-          crop_zoom = ?
-      WHERE id = ?
-        AND status = 'pending'
-    `).run(safeCropX, safeCropY, safeCropZoom, req.params.id);
+const approvePhoto = db.transaction(() => {
+  const pendingPhoto = db.prepare(`
+    SELECT id
+    FROM photos
+    WHERE id = ?
+      AND status = 'pending'
+  `).get(req.params.id);
 
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Pending photo not found' });
-    }
+  if (!pendingPhoto) {
+    return false;
+  }
+
+  // Move every existing approved bust down one position.
+  db.prepare(`
+    UPDATE photos
+    SET display_order = display_order + 1
+    WHERE status = 'approved'
+  `).run();
+
+  // The newly approved bust becomes the first photo.
+  db.prepare(`
+    UPDATE photos
+    SET status = 'approved',
+        approved_at = CURRENT_TIMESTAMP,
+        crop_x = ?,
+        crop_y = ?,
+        crop_zoom = ?,
+        display_order = 1
+    WHERE id = ?
+  `).run(
+    safeCropX,
+    safeCropY,
+    safeCropZoom,
+    req.params.id
+  );
+
+  return true;
+});
+
+const approved = approvePhoto();
+
+if (!approved) {
+  return res.status(404).json({ error: 'Pending photo not found' });
+}
 
     res.json({ ok: true });
   } catch (error) {
