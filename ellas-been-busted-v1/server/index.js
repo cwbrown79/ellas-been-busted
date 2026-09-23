@@ -248,12 +248,12 @@ app.post('/api/admin/photos/:id/reject', (req, res) => {
 app.get('/api/photos', (req, res) => {
   try {
     const photos = db.prepare(`
-  SELECT id, filename, caption, category, submitted_by,
-         crop_x, crop_y, crop_zoom
-  FROM photos
-  WHERE status = 'approved'
-  ORDER BY id DESC
-`).all();
+      SELECT id, filename, caption, category, submitted_by,
+             crop_x, crop_y, crop_zoom, display_order
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY display_order ASC, id DESC
+    `).all();
 
     res.json(photos);
   } catch (error) {
