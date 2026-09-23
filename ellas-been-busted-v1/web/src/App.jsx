@@ -292,7 +292,7 @@ const handleRejectPhoto = async (photoId) => {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/admin/photos/${photoId}/remove`, {
+      const response = await fetch(`/api/admin/photos/${photoId}/delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
