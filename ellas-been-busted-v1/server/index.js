@@ -262,6 +262,43 @@ app.get('/api/photos', (req, res) => {
   }
 });
 
+// Get the 20 most recent busts
+app.get('/api/photos/recent', (req, res) => {
+  try {
+    const photos = db.prepare(`
+      SELECT id, filename, caption, category, submitted_by,
+             crop_x, crop_y, crop_zoom, display_order
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY display_order ASC, id DESC
+      LIMIT 20
+    `).all();
+
+    res.json(photos);
+  } catch (error) {
+    console.error('Failed to load recent busts:', error);
+    res.status(500).json({ error: 'Failed to load recent busts' });
+  }
+});
+
+// Get all busts older than the 20 most recent
+app.get('/api/photos/old', (req, res) => {
+  try {
+    const photos = db.prepare(`
+      SELECT id, filename, caption, category, submitted_by,
+             crop_x, crop_y, crop_zoom, display_order
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY display_order ASC, id DESC
+      LIMIT -1 OFFSET 20
+    `).all();
+
+    res.json(photos);
+  } catch (error) {
+    console.error('Failed to load old busts:', error);
+    res.status(500).json({ error: 'Failed to load old busts' });
+  }
+});
 
 app.post('/api/photos', upload.single('photo'), (req, res) => {
   try {
