@@ -585,8 +585,6 @@ setCropY(0);
           </div>
         </div>
       )}
-
-      {showAdminDashboard && (
       
 {showAdminDashboard && (
   <div className="admin-dashboard-overlay">
