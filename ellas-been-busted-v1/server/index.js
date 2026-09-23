@@ -365,6 +365,78 @@ res.json({ ok: true });
 }
 });
 
+// Move an approved bust up or down
+app.post('/api/admin/photos/:id/move', (req, res) => {
+  const { password, direction } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword || password !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (direction !== 'up' && direction !== 'down') {
+    return res.status(400).json({ error: 'Invalid direction' });
+  }
+
+  try {
+    const photo = db.prepare(`
+      SELECT *
+      FROM photos
+      WHERE id = ?
+        AND status = 'approved'
+    `).get(req.params.id);
+
+    if (!photo) {
+      return res.status(404).json({ error: 'Approved photo not found' });
+    }
+
+    const approvedPhotos = db.prepare(`
+      SELECT id
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY COALESCE(display_order, 999999) ASC, id ASC
+    `).all();
+
+    const currentIndex = approvedPhotos.findIndex(
+      (item) => item.id === photo.id
+    );
+
+    if (currentIndex === -1) {
+      return res.status(404).json({ error: 'Approved photo not found' });
+    }
+
+    const targetIndex =
+      direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= approvedPhotos.length) {
+      return res.json({ ok: true });
+    }
+
+    const reordered = [...approvedPhotos];
+    const [movedPhoto] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, movedPhoto);
+
+    const updateOrder = db.prepare(`
+      UPDATE photos
+      SET display_order = ?
+      WHERE id = ?
+    `);
+
+    const saveOrder = db.transaction(() => {
+      reordered.forEach((item, index) => {
+        updateOrder.run(index + 1, item.id);
+      });
+    });
+
+    saveOrder();
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to move approved photo:', error);
+    res.status(500).json({ error: 'Failed to move approved photo' });
+  }
+});
+
 // Permanently remove an approved bust
 app.post('/api/admin/photos/:id/delete', (req, res) => {
   const { password } = req.body;
