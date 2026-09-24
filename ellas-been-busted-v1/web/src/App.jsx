@@ -387,7 +387,13 @@ const handleRejectPhoto = async (photoId) => {
 >
   Gallery
 </a>
-          <a href="#submit">Submit a Photo</a>
+          <button
+  type="button"
+  className="nav-submit-button"
+  onClick={() => setShowSubmitForm(true)}
+>
+  Submit a Photo
+</button>
           <a href="#about">About</a>
         </nav>
         <button
@@ -752,7 +758,13 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
             </p>
             <div className="hero-actions">
               <a className="button primary" href="#gallery">View Gallery →</a>
-              <a className="button secondary" href="#submit">Submit a Photo</a>
+              <button
+  className="button secondary"
+  type="button"
+  onClick={() => setShowSubmitForm(true)}
+>
+  Submit a Photo
+</button>
             </div>
           </div>
         </section>
@@ -935,8 +947,24 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
           </div>
         </section>
 {showSubmitForm && (
-  <section className="submit-form-section">
-    <div className="submit-form">
+  <div
+    className="submit-modal-overlay"
+    onClick={() => setShowSubmitForm(false)}
+  >
+    <section
+      className="submit-form-section submit-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="submit-modal-close"
+        onClick={() => setShowSubmitForm(false)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <div className="submit-form">
       <h2>Submit a Photo</h2>
       <p>Share your favorite Ella moment.</p>
 
@@ -1009,9 +1037,10 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
         >
           Cancel
         </button>
-      </div>
+           </div>
     </div>
-  </section>
+    </section>
+  </div>
 )}
         
         <section className="about" id="about">
