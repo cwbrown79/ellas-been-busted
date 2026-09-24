@@ -674,64 +674,7 @@ setCropZoom(savedCrop?.cropZoom ?? photo.crop_zoom ?? 100);
           ))}
         </div>
       )}
-      <div className="admin-approved-section">
-  <div className="admin-approved-header">
-    <div>
-      <h2>Approved Busts</h2>
-      <p>Manage photos currently shown in the Recent Busts gallery.</p>
-    </div>
-  </div>
-
-  {approvedPhotos.length === 0 ? (
-    <p>No approved busts yet.</p>
-  ) : (
-    <div className="admin-photo-grid">
-      {approvedPhotos.map((photo) => (
-        <div className="admin-photo-card" key={photo.id}>
-          <img
-            src={`/uploads/${photo.filename}`}
-            alt={photo.caption || "Approved Ella photo"}
-          />
-
-          <h3>{photo.caption || "Untitled Photo"}</h3>
-
-          <p>
-            <strong>Category:</strong> {photo.category || "Everyday"}
-          </p>
-
-          {photo.submitted_by && (
-            <p>
-              <strong>Submitted by:</strong> {photo.submitted_by}
-            </p>
-          )}
-
-          <div className="admin-photo-actions">
-            <button
-              className="button light"
-              type="button"
-              onClick={() => {
-                setEditingCropPhoto(photo);
-                setCropX(photo.crop_x ?? 0);
-                setCropY(photo.crop_y ?? 0);
-                setCropZoom(photo.crop_zoom ?? 100);
-              }}
-            >
-              Adjust Photo
-            </button>
-
-            <button
-              className="button"
-              type="button"
-              onClick={() => handleDeleteApprovedPhoto(photo.id)}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
+      
     </div>
   </div>
 )}
