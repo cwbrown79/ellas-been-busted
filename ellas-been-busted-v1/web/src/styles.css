@@ -429,6 +429,76 @@ footer p { justify-self: end; color: #bdb5ae; font-size: 13px; }
     font-size: 36px;
   }
 }
+/* Submit Photo Modal */
+.submit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 2000;
+  overflow-y: auto;
+}
+
+.submit-modal {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  padding: 0;
+  background: transparent;
+}
+
+.submit-modal .submit-form {
+  margin: 0;
+  max-width: 680px;
+}
+
+.submit-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6d625b;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.submit-modal-close:hover {
+  color: #000;
+}
+
+.nav-submit-button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .submit-modal-overlay {
+    align-items: flex-start;
+    padding: 20px 12px;
+  }
+
+  .submit-modal .submit-form {
+    padding: 28px 22px;
+  }
+}
 .admin-login-overlay {
   position: fixed;
   inset: 0;
