@@ -1,0 +1,17 @@
+{
+  "name": "Ella's Been Busted",
+  "short_name": "Ella's Busted",
+  "description": "Ella's Been Busted",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/ebb-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
