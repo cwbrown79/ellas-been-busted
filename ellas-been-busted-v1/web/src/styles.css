@@ -337,6 +337,16 @@ footer p { justify-self: end; color: #bdb5ae; font-size: 13px; }
   .brand { font-size: 24px; }
   .admin-button { padding: 11px 12px; font-size: 10px; }
   .hero { min-height: 610px; }
+  .hero-photo::after {
+  background: linear-gradient(
+    90deg,
+    #c9c0b7 0%,
+    rgba(201, 192, 183, 0.95) 4%,
+    rgba(201, 192, 183, 0.60) 10%,
+    rgba(201, 192, 183, 0.15) 18%,
+    rgba(201, 192, 183, 0) 24%
+  );
+}
   .hero-overlay { padding: 100px 24px 70px; }
   .hero h1 { font-size: 66px; }
   .features { grid-template-columns: 1fr; }
